@@ -2,22 +2,30 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Farm Market Link", layout="centered")
+# Page config
+st.set_page_config(
+    page_title="Farm Market Link",
+    page_icon="🌾",
+    layout="wide"
+)
 
+# Title
 st.title("🌾 Farm Market Link")
-st.subheader("Agricultural Pricing and Demand Forecast")
+st.markdown("### Agricultural Pricing and Demand Forecast Dashboard")
 
-# Load dataset
+# Load data
 data = pd.read_csv("clean_market_data.csv")
 
-# Dropdowns
-group = st.selectbox(
-    "Select Commodity Group",
+# Sidebar
+st.sidebar.header("🔍 Select Options")
+
+group = st.sidebar.selectbox(
+    "Commodity Group",
     data["Commodity Group"].unique()
 )
 
-commodity = st.selectbox(
-    "Select Commodity",
+commodity = st.sidebar.selectbox(
+    "Commodity",
     data[data["Commodity Group"] == group]["Commodity"].unique()
 )
 
@@ -27,17 +35,40 @@ filtered = data[
     (data["Commodity"] == commodity)
 ]
 
-st.write("### Market Data")
-st.dataframe(filtered)
+price = filtered["Average Price"].values[0]
+arrival = filtered["Average Arrival"].values[0]
 
-# Chart
-st.write("### Price & Demand Overview")
-fig, ax = plt.subplots()
+# Main layout
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric(label="💰 Average Price", value=f"₹ {price}")
+
+with col2:
+    st.metric(label="📦 Average Arrival (Demand)", value=f"{arrival}")
+
+st.markdown("---")
+
+# Chart section
+st.subheader("📊 Price vs Demand Overview")
+
+fig, ax = plt.subplots(figsize=(6,4))
 ax.bar(
     ["Average Price", "Average Arrival"],
-    [
-        filtered["Average Price"].values[0],
-        filtered["Average Arrival"].values[0]
-    ]
+    [price, arrival],
+    color=["#4CAF50", "#2196F3"]
 )
+ax.set_ylabel("Value")
+ax.set_title("Market Analysis")
 st.pyplot(fig)
+
+# Data table
+st.subheader("📋 Market Data")
+st.dataframe(filtered)
+
+# Footer
+st.markdown("---")
+st.caption(
+    "Farm Market Link | Developed as an academic project using Streamlit Cloud"
+)
+
